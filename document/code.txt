@@ -1,0 +1,2 @@
+Problem:
+	light will influence great on black background than white background;
