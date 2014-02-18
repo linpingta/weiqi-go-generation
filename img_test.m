@@ -33,15 +33,17 @@ qizi_size_y = floor(panel_y / unit);
 
 qizi_center_x_vec = [];
 qizi_center_y_vec = [];
-for m = 1 : (unit + 1)
+for m = 0 : unit
     qizi_center_x_vec = [qizi_center_x_vec (m * qizi_size_x + zero_point_x)];
     qizi_center_y_vec = [qizi_center_y_vec (m * qizi_size_y + zero_point_y)];
 end
 
-sub_image = zeros((unit + 1)*(unit + 1),qizi_size_x,qizi_size_y);
-for x = 1 : (0 + 1)
-    for y = 1 : (0 + 1)
-        x,y
+% type = 0 means no qizi, type = 1 means black, type = 2 means white
+type_qipan = zeros(1 + unit,1 + unit);
+
+for x = 10 : 10
+    for y = 5 : 7
+        % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
         left = c_x - floor(qizi_size_x / 2);
@@ -60,15 +62,64 @@ for x = 1 : (0 + 1)
         if bottom > height - 1
             bottom = height - 1;
         end        
-        index = (x - 1) * (unit + 1) + y;
-        for m = left : right
-            for n = top : bottom
-                sub_image(index,:,:) = img(m,n);
+    
+        % extract sub qizi in the location
+        sub_image = img(left+1:right,top+1:bottom,:);   
+        %imwrite(sub_image,['img/qizi_', int2str(x), '_', int2str(y), '.jpg']);
+        
+        % distinguish white/black/no qizi
+        [sub_width sub_height sub_color] = size(sub_image);
+        sub_image_full_or_not = zeros(sub_width,sub_height,3);
+        count_full_or_not = 0;
+        count_black_or_white = 0;
+        for m = 1 : sub_width
+            for n = 1 : sub_height
+                %flag = 0;
+                avg = mean(sub_image(m,n,:));
+                if avg > 127
+                    %flag = 1;
+                    count_black_or_white = count_black_or_white + 1;
+                end                
+                for k = 1 : 3
+                    if abs(avg - sub_image(m,n,k)) > 10
+                        %flag = 1;
+                        count_full_or_not = count_full_or_not + 1;
+                        break;
+                    end     
+                end
+%                 if flag == 1
+%                     sub_image_full_or_not(m,n,1) = 255;
+%                     sub_image_full_or_not(m,n,2) = 255;
+%                     sub_image_full_or_not(m,n,3) = 255;
+%                 end
             end
-        end        
+        end
+        
+        if count_full_or_not > 0.5 * sub_width * sub_height
+            type_qipan(x,y) = 0;
+        else
+            if count_black_or_white < 0.5 * sub_width * sub_height
+                type_qipan(x,y) = 1;
+            else
+                type_qipan(x,y) = 2;
+            end
+        end
+        
+        figure;
+        imshow(sub_image);  
+                
+        type_qipan(x,y)
+        if type_qipan(x,y) > 0
+            sub_image_grey = rgb2gray(sub_image);
+            sub_image_binary = im2bw(sub_image_grey);            
+        
+            figure;
+            imshow(sub_image_binary);
+        end       
+        
+%         figure;
+%         imshow(sub_image_full_or_not);
+        
     end
 end
-
-figure;
-imshow(sub_image(1));
         
