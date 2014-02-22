@@ -42,7 +42,7 @@ end
 type_qipan = zeros(1 + unit,1 + unit);
 
 for x = 10 : 10
-    for y = 5 : 7
+    for y = 6 : 6
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
@@ -111,10 +111,14 @@ for x = 10 : 10
         type_qipan(x,y)
         if type_qipan(x,y) > 0
             sub_image_grey = rgb2gray(sub_image);
+            %sub_image_grey_s = medfilt2(sub_image_grey, [3 3]);
             sub_image_binary = im2bw(sub_image_grey);            
         
             figure;
             imshow(sub_image_binary);
+            
+            [L num] = bwlabel(sub_image_binary);
+            S = regionprops(L,'Area');
         end       
         
 %         figure;
