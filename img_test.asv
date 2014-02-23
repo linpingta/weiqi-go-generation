@@ -1,9 +1,14 @@
 clear all, close all
 
+% training of number before
 load 'standard.mat'
 compare_height = length(standard_num_in_height);
 compare_width = length(standard_num_in_width);
 
+% output of result
+f1 = fopen('result.txt','w');
+
+% input of image for test
 img_filename = 'img/qipu_test.jpg';
 img = imread(img_filename);
 
@@ -45,8 +50,8 @@ end
 % type = 0 means no qizi, type = 1 means black, type = 2 means white
 type_qipan = zeros(1 + unit,1 + unit);
 
-for x = 10 : 10
-    for y = 7 : 7
+for x = 9 : 9
+    for y = 18 : 18
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
@@ -132,6 +137,7 @@ for x = 10 : 10
             [L num] = bwlabel(sub_image_binary);
             S = regionprops(L);
             
+            result_p_list = []
             for m = 1:num % get every sub image
                 LTmp = double(L == m);
                 
@@ -176,14 +182,15 @@ for x = 10 : 10
                 test_standard_num_in_height = test_standard_num_in_height(1:compare_height);
 
                 for m1 = 1:test_width
-                    test_standard_num_in_height(ratio_test_width * (m1 - 1) + 1 : ratio_test_width * m1 ) = test_num_in_width(m1);
+                    test_standard_num_in_width(ratio_test_width * (m1 - 1) + 1 : ratio_test_width * m1 ) = test_num_in_width(m1);
                 end
+                test_standard_num_in_width = test_standard_num_in_width(1:compare_width);
                 
                 % compare with all standard number from 0 to 9.
                 P = 10;
                 min_distance = 10;
                 min_p = 0;
-                distance = zeros(P,1)
+                distance = zeros(P,1);
                 for p = 1 : P
                     for k1 = 1 : compare_height
                         distance(p) = distance(p) + abs(test_standard_num_in_height(k1) - standard_num_in_height(p,k1));
@@ -198,13 +205,25 @@ for x = 10 : 10
                     end
                 end
                 
-                min_p - 1
+                'sk',min_p
+                % get result for value of position(x,y)
+                result_p_list = [min_p - 1, result_p_list];
+            end 
+            
+            index = 1;
+            result_num = 0;
+           
+            for m1 = 1 : length(result_p_list)
+                result_num = result_num + index * result_p_list(m1);
+                index = index * 10;
             end
-        end       
+        else
+            result_num = -1;
+        end  
         
-%         figure;
-%         imshow(sub_image_full_or_not);
-        
+        fprintf(f1,'v(%d,%d) = %d',[x,y,result_num]);
     end
 end
+
+fclose(f1);
         

@@ -1,9 +1,14 @@
 clear all, close all
 
+% training of number before
 load 'standard.mat'
 compare_height = length(standard_num_in_height);
 compare_width = length(standard_num_in_width);
 
+% output of result
+f1 = fopen('result.txt','wt');
+
+% input of image for test
 img_filename = 'img/qipu_test.jpg';
 img = imread(img_filename);
 
@@ -46,7 +51,7 @@ end
 type_qipan = zeros(1 + unit,1 + unit);
 
 for x = 9 : 9
-    for y = 18 : 18
+    for y = 1 : 18
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
@@ -132,6 +137,7 @@ for x = 9 : 9
             [L num] = bwlabel(sub_image_binary);
             S = regionprops(L);
             
+            result_p_list = []
             for m = 1:num % get every sub image
                 LTmp = double(L == m);
                 
@@ -199,13 +205,25 @@ for x = 9 : 9
                     end
                 end
                 
-                'sk',min_p - 1
+                'sk',min_p
+                % get result for value of position(x,y)
+                result_p_list = [min_p - 1, result_p_list];
+            end 
+            
+            index = 1;
+            result_num = 0;
+           
+            for m1 = 1 : length(result_p_list)
+                result_num = result_num + index * result_p_list(m1);
+                index = index * 10;
             end
-        end       
+        else
+            result_num = -1;
+        end  
         
-%         figure;
-%         imshow(sub_image_full_or_not);
-        
+        fprintf(f1,'v(%d,%d) = %d \n',[x,y,result_num]);
     end
 end
+
+fclose(f1);
         
