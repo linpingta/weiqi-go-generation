@@ -32,7 +32,7 @@ end
 img_test = imread('test/t8.png');
 img_test_binary = im2bw(img_test);
 img_test_binary = img_test_binary .* 255;
-[test_height test_width] = get_character_number(img_test_binary,INTERVAL);
+[test_height test_width] = get_character_number(img_test_binary);
 
 figure;
 imshow(img_test_binary);
