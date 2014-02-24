@@ -50,8 +50,8 @@ end
 % type = 0 means no qizi, type = 1 means black, type = 2 means white
 type_qipan = zeros(1 + unit,1 + unit);
 
-for x = 9 : 9
-    for y = 1 : 18
+for x = 10 : 10
+    for y = 7 : 7
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
@@ -130,31 +130,87 @@ for x = 9 : 9
                 sub_image_binary = ~sub_image_binary;
             end
         
-%             figure;
-%             imshow(sub_image_binary);
+            figure;
+            imshow(sub_image_binary);
             
             [sub_width1 sub_height1] = size(sub_image_binary);
             [L num] = bwlabel(sub_image_binary);
-            S = regionprops(L);
+            S = regionprops(L, 'all');
             
             result_p_list = []
             for m = 1:num % get every sub image
                 LTmp = double(L == m);
                 
+                S(m).BoundingBox = floor(S(m).BoundingBox)
+                
                 % judge whether it's useful
+                new_size = (S(m).BoundingBox(3) + 2) * (S(m).BoundingBox(4) + 2);
                 size1 = S(m).BoundingBox(3) * S(m).BoundingBox(4);
                 ratio = S(m).Area / size1;
+                tleft = S(m).BoundingBox(1);
+                ttop = S(m).BoundingBox(2);
+                tright = S(m).BoundingBox(1) + S(m).BoundingBox(3);
+                tdown = S(m).BoundingBox(2) + S(m).BoundingBox(4);               
                 
                 % not usefule case
                 if ratio > 0.5
                     continue;
+                    % the special case for number 8
+%                     flag = false;
+%                     convex_count = S(m).FilledArea;                    
+%     
+%                     TT = LTmp;
+%                     
+%                     queuex = [tleft];
+%                     queuey = [ttop];
+%                     zero_count = 1;
+%                     TT(ttop,tleft) = -1;
+%                     while (length(queuex) > 0)
+%                         'start'
+%                         firstx = queuex(1)
+%                         firsty = queuey(1)
+%                         queuex(1) = [];
+%                         queuey(1) = [];                        
+%                         
+%                         if (firstx - 1 >= tleft - 1 && TT(firsty,firstx - 1) == 0 && ...
+%                             (sum(queuex == firstx - 1) == 0 || sum(queuey == firsty) == 0))
+%                             queuex = [queuex firstx-1];
+%                             queuey = [queuey firsty];  
+%                             TT(firsty,firstx - 1) = -1;
+%                             zero_count = zero_count + 1;
+%                         end
+%                         
+%                         if (firstx + 1 <= tright + 1 && TT(firsty,firstx + 1) == 0 && ...
+%                             (sum(queuex == firstx + 1) == 0 || sum(queuey == firsty) == 0))
+%                             queuex = [queuex firstx+1];
+%                             queuey = [queuey firsty];
+%                             T(firsty,firstx + 1) = -1;
+%                             zero_count = zero_count + 1;
+%                         end
+%                         
+%                         if (firsty - 1 >= ttop - 1 && TT(firsty - 1,firstx) == 0 && ...
+%                             (sum(queuex == firstx) == 0 || sum(queuey == firsty - 1) == 0))
+%                             queuex = [queuex firstx];
+%                             queuey = [queuey firsty - 1];
+%                             T(firsty - 1,firstx) = -1;
+%                             zero_count = zero_count + 1;
+%                         end
+%                         
+%                         if (firsty + 1 <= tdown + 1 && TT(firsty + 1,firstx) == 0 && ...
+%                            (sum(queuex == firstx) == 0 || sum(queuey == firsty + 1) == 0))
+%                             queuex = [queuex firstx];
+%                             queuey = [queuey firsty + 1];
+%                             T(firsty + 1,firstx) = -1;
+%                             zero_count = zero_count + 1;
+%                         end
+%                     end
+%                     
+%                     if (zero_count + convex_count) == new_size
+%                         continue
+%                     end
                 end
                 
                 % if in the edge, continue
-                tleft = S(m).BoundingBox(1);
-                ttop = S(m).BoundingBox(2);
-                tright = S(m).BoundingBox(1) + S(m).BoundingBox(3);
-                tdown = S(m).BoundingBox(2) + S(m).BoundingBox(4);
                 if tleft <= 2 || ttop <= 2 || (tright >= sub_width1 - 2) || (tdown >= sub_height1 - 2)
                     continue;
                 end               
