@@ -50,8 +50,8 @@ end
 % type = 0 means no qizi, type = 1 means black, type = 2 means white
 type_qipan = zeros(1 + unit,1 + unit);
 
-for x = 10 : 10
-    for y = 7 : 7
+for x = 5 : 5
+    for y = 1 : 19
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
@@ -140,11 +140,12 @@ for x = 10 : 10
             result_p_list = []
             for m = 1:num % get every sub image
                 LTmp = double(L == m);
-                
+                one_count = sum(sum(LTmp));
+                 
                 S(m).BoundingBox = floor(S(m).BoundingBox)
                 
                 % judge whether it's useful
-                new_size = (S(m).BoundingBox(3) + 2) * (S(m).BoundingBox(4) + 2);
+                new_size = (S(m).BoundingBox(3) + 2 + 1) * (S(m).BoundingBox(4) + 2 + 1);
                 size1 = S(m).BoundingBox(3) * S(m).BoundingBox(4);
                 ratio = S(m).Area / size1;
                 tleft = S(m).BoundingBox(1);
@@ -154,60 +155,83 @@ for x = 10 : 10
                 
                 % not usefule case
                 if ratio > 0.5
-                    continue;
+%                     continue;
                     % the special case for number 8
-%                     flag = false;
-%                     convex_count = S(m).FilledArea;                    
-%     
-%                     TT = LTmp;
-%                     
-%                     queuex = [tleft];
-%                     queuey = [ttop];
-%                     zero_count = 1;
-%                     TT(ttop,tleft) = -1;
-%                     while (length(queuex) > 0)
-%                         'start'
-%                         firstx = queuex(1)
-%                         firsty = queuey(1)
-%                         queuex(1) = [];
-%                         queuey(1) = [];                        
-%                         
-%                         if (firstx - 1 >= tleft - 1 && TT(firsty,firstx - 1) == 0 && ...
-%                             (sum(queuex == firstx - 1) == 0 || sum(queuey == firsty) == 0))
-%                             queuex = [queuex firstx-1];
-%                             queuey = [queuey firsty];  
-%                             TT(firsty,firstx - 1) = -1;
-%                             zero_count = zero_count + 1;
-%                         end
-%                         
-%                         if (firstx + 1 <= tright + 1 && TT(firsty,firstx + 1) == 0 && ...
-%                             (sum(queuex == firstx + 1) == 0 || sum(queuey == firsty) == 0))
-%                             queuex = [queuex firstx+1];
-%                             queuey = [queuey firsty];
-%                             T(firsty,firstx + 1) = -1;
-%                             zero_count = zero_count + 1;
-%                         end
-%                         
-%                         if (firsty - 1 >= ttop - 1 && TT(firsty - 1,firstx) == 0 && ...
-%                             (sum(queuex == firstx) == 0 || sum(queuey == firsty - 1) == 0))
-%                             queuex = [queuex firstx];
-%                             queuey = [queuey firsty - 1];
-%                             T(firsty - 1,firstx) = -1;
-%                             zero_count = zero_count + 1;
-%                         end
-%                         
-%                         if (firsty + 1 <= tdown + 1 && TT(firsty + 1,firstx) == 0 && ...
-%                            (sum(queuex == firstx) == 0 || sum(queuey == firsty + 1) == 0))
-%                             queuex = [queuex firstx];
-%                             queuey = [queuey firsty + 1];
-%                             T(firsty + 1,firstx) = -1;
-%                             zero_count = zero_count + 1;
-%                         end
-%                     end
-%                     
-%                     if (zero_count + convex_count) == new_size
-%                         continue
-%                     end
+                    flag = false;                                     
+    
+                    % if in the edge, continue
+                    if tleft <= 2 || ttop <= 2 || (tright >= sub_width1 - 2) || (tdown >= sub_height1 - 2)
+                        continue;
+                    end   
+                
+                    TT = LTmp;
+                    
+                    queuex = [tleft];
+                    queuey = [ttop];
+                    zero_count = 1;
+                    TT(ttop,tleft) = -1;
+                    while (length(queuex) > 0)
+                        'start'
+                        firstx = queuex(1)
+                        firsty = queuey(1)
+                        queuex(1) = [];
+                        queuey(1) = [];                        
+                                               
+                        bflag1 = false;
+                        bflag2 = false;
+                        bflag3 = false;
+                        bflag4 = false;
+                        for m1 = 1 : length(queuex)
+                            if (firstx - 1) == queuex(m1) && firsty == queuey(m1)
+                                bflag1 = true;
+                            end
+                            if (firstx + 1) == queuex(m1) && firsty == queuey(m1)
+                                bflag2 = true;
+                            end
+                            if firstx == queuex(m1) && (firsty - 1) == queuey(m1)
+                                bflag3 = true;
+                            end
+                            if firstx == queuex(m1) && (firsty + 1) == queuey(m1)
+                                bflag4 = true;
+                            end                            
+                        end
+                        
+                        if (firstx - 1 >= tleft - 1 && TT(firsty,firstx - 1) == 0 && ...
+                            bflag1 == false)
+                            queuex = [queuex firstx-1];
+                            queuey = [queuey firsty];  
+                            TT(firsty,firstx - 1) = -1;
+                            zero_count = zero_count + 1;
+                        end
+                        
+                        if (firstx + 1 <= tright + 1 && TT(firsty,firstx + 1) == 0 && ...
+                            bflag2 == false)
+                            queuex = [queuex firstx+1];
+                            queuey = [queuey firsty];
+                            TT(firsty,firstx + 1) = -1;
+                            zero_count = zero_count + 1;
+                        end
+                        
+                        if (firsty - 1 >= ttop - 1 && TT(firsty - 1,firstx) == 0 && ...
+                            bflag3 == false)
+                            queuex = [queuex firstx];
+                            queuey = [queuey firsty - 1];
+                            TT(firsty - 1,firstx) = -1;
+                            zero_count = zero_count + 1;
+                        end
+                        
+                        if (firsty + 1 <= tdown + 1 && TT(firsty + 1,firstx) == 0 && ...
+                           bflag4 == false)
+                            queuex = [queuex firstx];
+                            queuey = [queuey firsty + 1];
+                            TT(firsty + 1,firstx) = -1;
+                            zero_count = zero_count + 1;
+                        end
+                   end
+                    
+                    if (zero_count + one_count) == new_size
+                        continue
+                    end
                 end
                 
                 % if in the edge, continue
