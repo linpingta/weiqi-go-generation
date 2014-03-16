@@ -10,6 +10,7 @@ f1 = fopen('result.txt','wt');
 
 % input of image for test
 img_filename = 'img/qipu_test.jpg';
+% img_filename = 'img/qipu_test_tianxiaqipu.jpg';
 img = imread(img_filename);
 
 figure;
@@ -17,11 +18,11 @@ imshow(img);
 
 [width height] = size(img);
 
-% img_hsv = rgb2hsv(img);
-% img_h = img_hsv(:,:,1);
-% 
-% figure;
-% imshow(img_h);
+img_hsv = rgb2hsv(img);
+img_h = img_hsv(:,:,3);
+
+figure;
+imshow(img_h);
 % 
 % img_h = medfilt2(img_h,[3 3]);
 % 
@@ -31,11 +32,25 @@ imshow(img);
 % figure;
 % imshow(img_bw);
 
+% read xml for init
+xmlDoc = xmlread('init_setting.xml');
+zero_point_x = xmlDoc.getElementsByTagName('left').item(0).getFirstChild.getData;
+zero_point_y = xmlDoc.getElementsByTagName('left').item(0).getFirstChild.getData;
+panel_x = xmlDoc.getElementsByTagName('left').item(0).getFirstChild.getData;
+panel_y = xmlDoc.getElementsByTagName('left').item(0).getFirstChild.getData;
+
 % image position
-zero_point_x = 13;
-zero_point_y = 18;
-panel_x = 668;
-panel_y = 683;
+% zero_point_x = 13;
+% zero_point_y = 18;
+% panel_x = 668;
+% panel_y = 683;
+
+% % tianxiqipu.jpg
+% zero_point_x = 14;
+% zero_point_y = 12;
+% panel_x = 467;
+% panel_y = 469;
+
 unit = 18;
 qizi_size_x = floor(panel_x / unit);
 qizi_size_y = floor(panel_y / unit);
@@ -50,8 +65,8 @@ end
 % type = 0 means no qizi, type = 1 means black, type = 2 means white
 type_qipan = zeros(1 + unit,1 + unit);
 
-for x = 10 : 10
-    for y = 7 : 7
+for x = 6 : 6
+    for y = 1 : 1
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
@@ -140,7 +155,8 @@ for x = 10 : 10
             result_p_list = []
             for m = 1:num % get every sub image
                 LTmp = double(L == m);
-                
+                one_count = sum(sum(LTmp));
+                 
                 S(m).BoundingBox = floor(S(m).BoundingBox)
                 
                 % judge whether it's useful
@@ -156,9 +172,13 @@ for x = 10 : 10
                 if ratio > 0.5
 %                     continue;
                     % the special case for number 8
-                    flag = false;
-                    one_count = S(m).FilledArea;                    
+                    flag = false;                                     
     
+                    % if in the edge, continue
+                    if tleft <= 2 || ttop <= 2 || (tright >= sub_width1 - 2) || (tdown >= sub_height1 - 2)
+                        continue;
+                    end   
+                
                     TT = LTmp;
                     
                     queuex = [tleft];
@@ -224,7 +244,7 @@ for x = 10 : 10
                         end
                    end
                     
-                    if (zero_count + convex_count) == new_size
+                    if (zero_count + one_count) == new_size
                         continue
                     end
                 end

@@ -10,6 +10,7 @@ f1 = fopen('result.txt','wt');
 
 % input of image for test
 img_filename = 'img/qipu_test.jpg';
+% img_filename = 'img/qipu_test_tianxiaqipu.jpg';
 img = imread(img_filename);
 
 figure;
@@ -17,11 +18,11 @@ imshow(img);
 
 [width height] = size(img);
 
-% img_hsv = rgb2hsv(img);
-% img_h = img_hsv(:,:,1);
-% 
-% figure;
-% imshow(img_h);
+img_hsv = rgb2hsv(img);
+img_h = img_hsv(:,:,3);
+
+figure;
+imshow(img_h);
 % 
 % img_h = medfilt2(img_h,[3 3]);
 % 
@@ -31,11 +32,25 @@ imshow(img);
 % figure;
 % imshow(img_bw);
 
+% read xml for init_setting.xml
+xmlDoc = xmlread('init_setting.xml');
+zero_point_x = str2num(char(xmlDoc.getElementsByTagName('left').item(0).getFirstChild.getData));
+zero_point_y = str2num(char(xmlDoc.getElementsByTagName('top').item(0).getFirstChild.getData));
+panel_x = str2num(char(xmlDoc.getElementsByTagName('width').item(0).getFirstChild.getData));
+panel_y = str2num(char(xmlDoc.getElementsByTagName('height').item(0).getFirstChild.getData));
+
 % image position
-zero_point_x = 13;
-zero_point_y = 18;
-panel_x = 668;
-panel_y = 683;
+% zero_point_x = 13;
+% zero_point_y = 18;
+% panel_x = 668;
+% panel_y = 683;
+
+% % tianxiqipu.jpg
+% zero_point_x = 14;
+% zero_point_y = 12;
+% panel_x = 467;
+% panel_y = 469;
+
 unit = 18;
 qizi_size_x = floor(panel_x / unit);
 qizi_size_y = floor(panel_y / unit);
@@ -50,8 +65,8 @@ end
 % type = 0 means no qizi, type = 1 means black, type = 2 means white
 type_qipan = zeros(1 + unit,1 + unit);
 
-for x = 5 : 5
-    for y = 1 : 19
+for x = 6 : 6
+    for y = 1 : 1
         % locate qizi position
         c_x = qizi_center_x_vec(x);
         c_y = qizi_center_x_vec(y);
